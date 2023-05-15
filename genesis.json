@@ -10,7 +10,9 @@
         "petersburgBlock": 0,
         "istanbulBlock": 0,
         "berlinBlock": 0,
-        "londonBlock": 0
+        "londonBlock": 0,
+        "ethash": {},
+        "terminalTotalDifficultyPassed": true
     },
     "alloc": {
         "0x0000000000000000000000000000000000000001": {
