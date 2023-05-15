@@ -516,7 +516,7 @@ func testGetNodeData(t *testing.T, protocol uint, drop bool) {
 	// Verify that all hashes correspond to the requested data.
 	data := res.NodeDataPacket
 	for i, want := range hashes {
-		if hash := crypto.Keccak256Hash(data[i]); hash != want {
+		if hash := crypto.Blake256Hash(data[i]); hash != want {
 			t.Errorf("data hash mismatch: have %x, want %x", hash, want)
 		}
 	}

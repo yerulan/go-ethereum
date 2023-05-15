@@ -499,7 +499,7 @@ func (st *StackTrie) Hash() (h common.Hash) {
 	// node. For the top level node, we need to force the hashing.
 	hasher.sha.Reset()
 	hasher.sha.Write(st.val)
-	hasher.sha.Read(h[:])
+	copy(h[:], hasher.sha.Sum(nil))
 	return h
 }
 
@@ -527,7 +527,7 @@ func (st *StackTrie) Commit() (h common.Hash, err error) {
 	// node. For the top level node, we need to force the hashing+commit.
 	hasher.sha.Reset()
 	hasher.sha.Write(st.val)
-	hasher.sha.Read(h[:])
+	copy(h[:], hasher.sha.Sum(nil))
 
 	st.writeFn(st.owner, nil, h, st.val)
 	return h, nil

@@ -121,8 +121,8 @@ func TestFrameReadWrite(t *testing.T) {
 	conn := NewConn(nil, nil)
 	hash := fakeHash([]byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1})
 	conn.InitWithSecrets(Secrets{
-		AES:        crypto.Keccak256(),
-		MAC:        crypto.Keccak256(),
+		AES:        crypto.Blake256(),
+		MAC:        crypto.Blake256(),
 		IngressMAC: hash,
 		EgressMAC:  hash,
 	})

@@ -77,7 +77,7 @@ func BenchmarkJumpdestHashing_1200k(bench *testing.B) {
 	bench.SetBytes(analysisCodeSize)
 	bench.ResetTimer()
 	for i := 0; i < bench.N; i++ {
-		crypto.Keccak256Hash(code)
+		crypto.Blake256Hash(code)
 	}
 	bench.StopTimer()
 }

@@ -38,7 +38,7 @@ func NewSecure(stateRoot common.Hash, owner common.Hash, root common.Hash, db *D
 }
 
 // StateTrie wraps a trie with key hashing. In a stateTrie trie, all
-// access operations hash the key using keccak256. This prevents
+// access operations hash the key using Blake256. This prevents
 // calling code from creating long chains of nodes that
 // increase the access time.
 //
@@ -256,7 +256,7 @@ func (t *StateTrie) hashKey(key []byte) []byte {
 	h := newHasher(false)
 	h.sha.Reset()
 	h.sha.Write(key)
-	h.sha.Read(t.hashKeyBuf[:])
+	copy(t.hashKeyBuf[:], h.sha.Sum(nil))
 	returnHasherToPool(h)
 	return t.hashKeyBuf[:]
 }

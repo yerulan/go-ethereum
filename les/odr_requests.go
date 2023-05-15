@@ -283,7 +283,7 @@ func (r *CodeRequest) Validate(db ethdb.Database, msg *Msg) error {
 	data := reply[0]
 
 	// Verify the data and store if checks out
-	if hash := crypto.Keccak256Hash(data); r.Hash != hash {
+	if hash := crypto.Blake256Hash(data); r.Hash != hash {
 		return errDataHashMismatch
 	}
 	r.Data = data

@@ -88,7 +88,7 @@ Remove blockchain and state databases`,
 		Flags:     flags.Merge(utils.NetworkFlags, utils.DatabasePathFlags),
 		Usage:     "Verify that state data is cryptographically correct",
 		Description: `This command iterates the entire database for 32-byte keys, looking for rlp-encoded trie nodes.
-For each trie node encountered, it checks that the key corresponds to the keccak256(value). If this is not true, this indicates
+For each trie node encountered, it checks that the key corresponds to the blake256(value). If this is not true, this indicates
 a data corruption.`,
 	}
 	dbStatCmd = &cli.Command{
@@ -308,7 +308,7 @@ func checkStateContent(ctx *cli.Context) error {
 	defer db.Close()
 	var (
 		it        = rawdb.NewKeyLengthIterator(db.NewIterator(prefix, start), 32)
-		hasher    = crypto.NewKeccakState()
+		hasher    = crypto.NewBlakeState()
 		got       = make([]byte, 32)
 		errs      int
 		count     int
@@ -321,7 +321,7 @@ func checkStateContent(ctx *cli.Context) error {
 		v := it.Value()
 		hasher.Reset()
 		hasher.Write(v)
-		hasher.Read(got)
+		copy(got, hasher.Sum(nil))
 		if !bytes.Equal(k, got) {
 			errs++
 			fmt.Printf("Error at %#x\n", k)

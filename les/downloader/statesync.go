@@ -25,10 +25,10 @@ import (
 	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/crypto/blake2b"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/trie"
-	"golang.org/x/crypto/sha3"
 )
 
 // stateReq represents a batch of state fetch requests grouped together into
@@ -260,9 +260,9 @@ func (d *Downloader) spindownStateSync(active map[string]*stateReq, finished []*
 type stateSync struct {
 	d *Downloader // Downloader instance to access and manage current peerset
 
-	root   common.Hash        // State root currently being synced
-	sched  *trie.Sync         // State trie sync scheduler defining the tasks
-	keccak crypto.KeccakState // Keccak256 hasher to verify deliveries with
+	root  common.Hash       // State root currently being synced
+	sched *trie.Sync        // State trie sync scheduler defining the tasks
+	blake crypto.BlakeState // Blake256 hasher to verify deliveries with
 
 	trieTasks map[string]*trieTask      // Set of trie node tasks currently queued for retrieval, indexed by path
 	codeTasks map[common.Hash]*codeTask // Set of byte code tasks currently queued for retrieval, indexed by hash
@@ -302,7 +302,7 @@ func newStateSync(d *Downloader, root common.Hash) *stateSync {
 		d:         d,
 		root:      root,
 		sched:     state.NewStateSync(root, d.stateDB, nil, rawdb.HashScheme),
-		keccak:    sha3.NewLegacyKeccak256().(crypto.KeccakState),
+		blake:     blake2b.NewBlake2b256().(crypto.BlakeState),
 		trieTasks: make(map[string]*trieTask),
 		codeTasks: make(map[common.Hash]*codeTask),
 		deliver:   make(chan *stateReq),
@@ -593,9 +593,9 @@ func (s *stateSync) process(req *stateReq) (int, error) {
 // be fetched again.
 func (s *stateSync) processNodeData(nodeTasks map[string]*trieTask, codeTasks map[common.Hash]*codeTask, blob []byte) (common.Hash, error) {
 	var hash common.Hash
-	s.keccak.Reset()
-	s.keccak.Write(blob)
-	s.keccak.Read(hash[:])
+	s.blake.Reset()
+	s.blake.Write(blob)
+	copy(hash[:], s.blake.Sum(nil))
 
 	if _, present := codeTasks[hash]; present {
 		err := s.sched.ProcessCode(trie.CodeSyncResult{

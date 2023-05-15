@@ -65,7 +65,7 @@ func makeProvers(trie *Trie) []func(key []byte) *memorydb.Database {
 		proof := memorydb.New()
 		if it := NewIterator(trie.NodeIterator(key)); it.Next() && bytes.Equal(key, it.Key) {
 			for _, p := range it.Prove() {
-				proof.Put(crypto.Keccak256(p), p)
+				proof.Put(crypto.Blake256(p), p)
 			}
 		}
 		return proof
@@ -133,7 +133,7 @@ func TestBadProof(t *testing.T) {
 			it.Release()
 
 			mutateByte(val)
-			proof.Put(crypto.Keccak256(val), val)
+			proof.Put(crypto.Blake256(val), val)
 
 			if _, err := VerifyProof(root, kv.k, proof); err == nil {
 				t.Fatalf("prover %d: expected proof to fail for key %x", i, kv.k)

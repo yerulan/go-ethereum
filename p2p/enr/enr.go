@@ -30,7 +30,7 @@
 // When creating a record, set the entries you want and use a signing function provided by
 // the identity scheme to add the signature. Modifying a record invalidates the signature.
 //
-// Package enr supports the "secp256k1-keccak" identity scheme.
+// Package enr supports the "secp256k1-Blake" identity scheme.
 package enr
 
 import (

@@ -88,8 +88,8 @@ contract OpCodes {
      //for_statement
      assembly { let x := calldatasize() for { let i := 0} lt(i, x) { i := add(i, 1) } { mstore(i, 2) } }
 
-     //keccak256
-     assembly { pop(keccak256(0,0)) }
+     //Blake256
+     assembly { pop(Blake256(0,0)) }
 
      //returndatasize
      assembly { let r := returndatasize }
@@ -201,7 +201,7 @@ contract OpCodes {
 
      //call
      address contractAddr = address(test1);
-     bytes4 sig = bytes4(keccak256("isSameAddress(address,address)")); //Function signature
+     bytes4 sig = bytes4(Blake256("isSameAddress(address,address)")); //Function signature
      address a = msg.sender;
 
      assembly {

@@ -76,7 +76,7 @@ func makechain() (bc *core.BlockChain, addrHashes, txHashes []common.Hash) {
 				tx, _ = types.SignTx(types.NewTransaction(nonce, addr, big.NewInt(10000), params.TxGas, big.NewInt(params.GWei), nil), signer, bankKey)
 			}
 			gen.AddTx(tx)
-			addrHashes = append(addrHashes, crypto.Keccak256Hash(addr[:]))
+			addrHashes = append(addrHashes, crypto.Blake256Hash(addr[:]))
 			txHashes = append(txHashes, tx.Hash())
 		})
 	bc, _ = core.NewBlockChain(rawdb.NewMemoryDatabase(), nil, gspec, nil, ethash.NewFaker(), vm.Config{}, nil, nil)

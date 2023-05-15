@@ -440,7 +440,7 @@ var (
 	}
 	CachePreimagesFlag = &cli.BoolFlag{
 		Name:     "cache.preimages",
-		Usage:    "Enable recording the SHA3/keccak preimages of trie keys",
+		Usage:    "Enable recording the blake2b/blake preimages of trie keys",
 		Category: flags.PerfCategory,
 	}
 	CacheLogSizeFlag = &cli.IntFlag{

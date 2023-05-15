@@ -61,7 +61,7 @@ type StateDB struct {
 	db         Database
 	prefetcher *triePrefetcher
 	trie       Trie
-	hasher     crypto.KeccakState
+	hasher     crypto.BlakeState
 
 	// originalRoot is the pre-state root, before any changes were made.
 	// It will be updated when the Commit is called.
@@ -149,7 +149,7 @@ func New(root common.Hash, db Database, snaps *snapshot.Tree) (*StateDB, error) 
 		journal:              newJournal(),
 		accessList:           newAccessList(),
 		transientStorage:     newTransientStorage(),
-		hasher:               crypto.NewKeccakState(),
+		hasher:               crypto.NewBlakeState(),
 	}
 	if sdb.snaps != nil {
 		if sdb.snap = sdb.snaps.Snapshot(root); sdb.snap != nil {
@@ -325,7 +325,7 @@ func (s *StateDB) GetState(addr common.Address, hash common.Hash) common.Hash {
 
 // GetProof returns the Merkle proof for a given account.
 func (s *StateDB) GetProof(addr common.Address) ([][]byte, error) {
-	return s.GetProofByHash(crypto.Keccak256Hash(addr.Bytes()))
+	return s.GetProofByHash(crypto.Blake256Hash(addr.Bytes()))
 }
 
 // GetProofByHash returns the Merkle proof for a given account.
@@ -345,7 +345,7 @@ func (s *StateDB) GetStorageProof(a common.Address, key common.Hash) ([][]byte, 
 		return nil, errors.New("storage trie for requested address does not exist")
 	}
 	var proof proofList
-	err = trie.Prove(crypto.Keccak256(key.Bytes()), 0, &proof)
+	err = trie.Prove(crypto.Blake256(key.Bytes()), 0, &proof)
 	if err != nil {
 		return nil, err
 	}
@@ -426,7 +426,7 @@ func (s *StateDB) SetNonce(addr common.Address, nonce uint64) {
 func (s *StateDB) SetCode(addr common.Address, code []byte) {
 	stateObject := s.GetOrNewStateObject(addr)
 	if stateObject != nil {
-		stateObject.SetCode(crypto.Keccak256Hash(code), code)
+		stateObject.SetCode(crypto.Blake256Hash(code), code)
 	}
 }
 
@@ -710,7 +710,7 @@ func (s *StateDB) Copy() *StateDB {
 		logSize:              s.logSize,
 		preimages:            make(map[common.Hash][]byte, len(s.preimages)),
 		journal:              newJournal(),
-		hasher:               crypto.NewKeccakState(),
+		hasher:               crypto.NewBlakeState(),
 	}
 	// Copy the dirty states, logs, and preimages
 	for addr := range s.journal.dirties {
@@ -1164,7 +1164,7 @@ func (s *StateDB) convertAccountSet(set map[common.Address]struct{}) map[common.
 	for addr := range set {
 		obj, exist := s.stateObjects[addr]
 		if !exist {
-			ret[crypto.Keccak256Hash(addr[:])] = struct{}{}
+			ret[crypto.Blake256Hash(addr[:])] = struct{}{}
 		} else {
 			ret[obj.addrHash] = struct{}{}
 		}

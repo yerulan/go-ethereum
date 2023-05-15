@@ -20,14 +20,14 @@ import (
 	"sync"
 
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/crypto/blake2b"
 	"github.com/ethereum/go-ethereum/rlp"
-	"golang.org/x/crypto/sha3"
 )
 
 // hasher is a type used for the trie Hash operation. A hasher has some
 // internal preallocated temp space
 type hasher struct {
-	sha      crypto.KeccakState
+	sha      crypto.BlakeState
 	tmp      []byte
 	encbuf   rlp.EncoderBuffer
 	parallel bool // Whether to use parallel threads when hashing
@@ -38,7 +38,7 @@ var hasherPool = sync.Pool{
 	New: func() interface{} {
 		return &hasher{
 			tmp:    make([]byte, 0, 550), // cap is as large as a full fullNode.
-			sha:    sha3.NewLegacyKeccak256().(crypto.KeccakState),
+			sha:    blake2b.NewBlake2b256().(crypto.BlakeState),
 			encbuf: rlp.NewEncoderBuffer(nil),
 		}
 	},
@@ -186,7 +186,7 @@ func (h *hasher) hashData(data []byte) hashNode {
 	n := make(hashNode, 32)
 	h.sha.Reset()
 	h.sha.Write(data)
-	h.sha.Read(n)
+	copy(n, h.sha.Sum(nil))
 	return n
 }
 

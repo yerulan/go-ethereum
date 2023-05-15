@@ -68,16 +68,16 @@ func MakeTopics(query ...[]interface{}) ([][]common.Hash, error) {
 				blob := new(big.Int).SetUint64(rule).Bytes()
 				copy(topic[common.HashLength-len(blob):], blob)
 			case string:
-				hash := crypto.Keccak256Hash([]byte(rule))
+				hash := crypto.Blake256Hash([]byte(rule))
 				copy(topic[:], hash[:])
 			case []byte:
-				hash := crypto.Keccak256Hash(rule)
+				hash := crypto.Blake256Hash(rule)
 				copy(topic[:], hash[:])
 
 			default:
 				// todo(rjl493456442) according solidity documentation, indexed event
 				// parameters that are not value types i.e. arrays and structs are not
-				// stored directly but instead a keccak256-hash of an encoding is stored.
+				// stored directly but instead a blake256-hash of an encoding is stored.
 				//
 				// We only convert stringS and bytes to hash, still need to deal with
 				// array(both fixed-size and dynamic-size) and struct.
@@ -131,7 +131,7 @@ func ParseTopicsIntoMap(out map[string]interface{}, fields Arguments, topics []c
 // parseTopicWithSetter converts the indexed topic field-value pairs and stores them using the
 // provided set function.
 //
-// Note, dynamic types cannot be reconstructed since they get mapped to Keccak256
+// Note, dynamic types cannot be reconstructed since they get mapped to blake256
 // hashes as the topic value!
 func parseTopicWithSetter(fields Arguments, topics []common.Hash, setter func(Argument, interface{})) error {
 	// Sanity check that the fields and topics match up
@@ -148,7 +148,7 @@ func parseTopicWithSetter(fields Arguments, topics []common.Hash, setter func(Ar
 		case TupleTy:
 			return errors.New("tuple type in topic reconstruction")
 		case StringTy, BytesTy, SliceTy, ArrayTy:
-			// Array types (including strings and bytes) have their keccak256 hashes stored in the topic- not a hash
+			// Array types (including strings and bytes) have their blake256 hashes stored in the topic- not a hash
 			// whose bytes can be decoded to the actual value- so the best we can do is retrieve that hash
 			reconstr = topics[i]
 		case FunctionTy:

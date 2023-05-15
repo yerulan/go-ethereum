@@ -22,13 +22,13 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/crypto/blake2b"
 	"github.com/ethereum/go-ethereum/rlp"
-	"golang.org/x/crypto/sha3"
 )
 
-// hasherPool holds LegacyKeccak256 hashers for rlpHash.
+// hasherPool holds Legacyblake256 hashers for rlpHash.
 var hasherPool = sync.Pool{
-	New: func() interface{} { return sha3.NewLegacyKeccak256() },
+	New: func() interface{} { return blake2b.NewBlake2b256() },
 }
 
 // encodeBufferPool holds temporary encoder buffers for DeriveSha and TX encoding.
@@ -38,23 +38,23 @@ var encodeBufferPool = sync.Pool{
 
 // rlpHash encodes x and hashes the encoded bytes.
 func rlpHash(x interface{}) (h common.Hash) {
-	sha := hasherPool.Get().(crypto.KeccakState)
+	sha := hasherPool.Get().(crypto.BlakeState)
 	defer hasherPool.Put(sha)
 	sha.Reset()
 	rlp.Encode(sha, x)
-	sha.Read(h[:])
+	copy(h[:], sha.Sum(nil))
 	return h
 }
 
 // prefixedRlpHash writes the prefix into the hasher before rlp-encoding x.
 // It's used for typed transactions.
 func prefixedRlpHash(prefix byte, x interface{}) (h common.Hash) {
-	sha := hasherPool.Get().(crypto.KeccakState)
+	sha := hasherPool.Get().(crypto.BlakeState)
 	defer hasherPool.Put(sha)
 	sha.Reset()
 	sha.Write([]byte{prefix})
 	rlp.Encode(sha, x)
-	sha.Read(h[:])
+	copy(h[:], sha.Sum(nil))
 	return h
 }
 

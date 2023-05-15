@@ -31,12 +31,12 @@ import (
 	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/crypto/blake2b"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/light"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/trie"
-	"golang.org/x/crypto/sha3"
 )
 
 func TestHashing(t *testing.T) {
@@ -50,7 +50,7 @@ func TestHashing(t *testing.T) {
 	}
 	var want, got string
 	var old = func() {
-		hasher := sha3.NewLegacyKeccak256()
+		hasher := blake2b.NewBlake2b256()
 		for i := 0; i < len(bytecodes); i++ {
 			hasher.Reset()
 			hasher.Write(bytecodes[i])
@@ -59,12 +59,12 @@ func TestHashing(t *testing.T) {
 		}
 	}
 	var new = func() {
-		hasher := sha3.NewLegacyKeccak256().(crypto.KeccakState)
+		hasher := blake2b.NewBlake2b256().(crypto.BlakeState)
 		var hash = make([]byte, 32)
 		for i := 0; i < len(bytecodes); i++ {
 			hasher.Reset()
 			hasher.Write(bytecodes[i])
-			hasher.Read(hash)
+			copy(hash, hasher.Sum(nil))
 			want = fmt.Sprintf("%v\n%v", want, hash)
 		}
 	}
@@ -83,7 +83,7 @@ func BenchmarkHashing(b *testing.B) {
 		bytecodes[i] = buf
 	}
 	var old = func() {
-		hasher := sha3.NewLegacyKeccak256()
+		hasher := blake2b.NewBlake2b256()
 		for i := 0; i < len(bytecodes); i++ {
 			hasher.Reset()
 			hasher.Write(bytecodes[i])
@@ -91,12 +91,12 @@ func BenchmarkHashing(b *testing.B) {
 		}
 	}
 	var new = func() {
-		hasher := sha3.NewLegacyKeccak256().(crypto.KeccakState)
+		hasher := blake2b.NewBlake2b256().(crypto.BlakeState)
 		var hash = make([]byte, 32)
 		for i := 0; i < len(bytecodes); i++ {
 			hasher.Reset()
 			hasher.Write(bytecodes[i])
-			hasher.Read(hash)
+			copy(hash, hasher.Sum(nil))
 		}
 	}
 	b.Run("old", func(b *testing.B) {
@@ -1335,14 +1335,14 @@ func key32(i uint64) []byte {
 
 var (
 	codehashes = []common.Hash{
-		crypto.Keccak256Hash([]byte{0}),
-		crypto.Keccak256Hash([]byte{1}),
-		crypto.Keccak256Hash([]byte{2}),
-		crypto.Keccak256Hash([]byte{3}),
-		crypto.Keccak256Hash([]byte{4}),
-		crypto.Keccak256Hash([]byte{5}),
-		crypto.Keccak256Hash([]byte{6}),
-		crypto.Keccak256Hash([]byte{7}),
+		crypto.Blake256Hash([]byte{0}),
+		crypto.Blake256Hash([]byte{1}),
+		crypto.Blake256Hash([]byte{2}),
+		crypto.Blake256Hash([]byte{3}),
+		crypto.Blake256Hash([]byte{4}),
+		crypto.Blake256Hash([]byte{5}),
+		crypto.Blake256Hash([]byte{6}),
+		crypto.Blake256Hash([]byte{7}),
 	}
 )
 
@@ -1596,7 +1596,7 @@ func makeStorageTrieWithSeed(owner common.Hash, n, seed uint64, db *trie.Databas
 		rlpSlotValue, _ := rlp.EncodeToBytes(common.TrimLeftZeroes(slotValue[:]))
 
 		slotKey := key32(i)
-		key := crypto.Keccak256Hash(slotKey[:])
+		key := crypto.Blake256Hash(slotKey[:])
 
 		elem := &kv{key[:], rlpSlotValue}
 		trie.MustUpdate(elem.k, elem.v)
@@ -1644,7 +1644,7 @@ func makeBoundaryStorageTrie(owner common.Hash, n int, db *trie.Database) (commo
 	// Fill other slots if required
 	for i := uint64(1); i <= uint64(n); i++ {
 		slotKey := key32(i)
-		key := crypto.Keccak256Hash(slotKey[:])
+		key := crypto.Blake256Hash(slotKey[:])
 
 		slotValue := key32(i)
 		rlpSlotValue, _ := rlp.EncodeToBytes(common.TrimLeftZeroes(slotValue[:]))

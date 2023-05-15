@@ -31,8 +31,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/ethereum/go-ethereum/crypto/blake2b"
 	"github.com/ethereum/go-ethereum/rlp"
-	"golang.org/x/crypto/sha3"
 )
 
 // SignatureLength indicates the byte length required to carry a signature with recovery id.
@@ -51,52 +51,51 @@ var (
 
 var errInvalidPubkey = errors.New("invalid secp256k1 public key")
 
-// KeccakState wraps sha3.state. In addition to the usual hash methods, it also supports
+// BlakeState wraps sha3.state. In addition to the usual hash methods, it also supports
 // Read to get a variable amount of data from the hash state. Read is faster than Sum
 // because it doesn't copy the internal state, but also modifies the internal state.
-type KeccakState interface {
+type BlakeState interface {
 	hash.Hash
-	Read([]byte) (int, error)
 }
 
-// NewKeccakState creates a new KeccakState
-func NewKeccakState() KeccakState {
-	return sha3.NewLegacyKeccak256().(KeccakState)
+// NewBlakeState creates a new BlakeState
+func NewBlakeState() BlakeState {
+	return blake2b.NewBlake2b256().(BlakeState)
 }
 
-// HashData hashes the provided data using the KeccakState and returns a 32 byte hash
-func HashData(kh KeccakState, data []byte) (h common.Hash) {
-	kh.Reset()
+// HashData hashes the provided data using the BlakeState and returns a 32 byte hash
+func HashData(kh BlakeState, data []byte) (h common.Hash) {
 	kh.Write(data)
-	kh.Read(h[:])
+	copy(h[:], kh.Sum(nil))
 	return h
 }
 
-// Keccak256 calculates and returns the Keccak256 hash of the input data.
-func Keccak256(data ...[]byte) []byte {
-	b := make([]byte, 32)
-	d := NewKeccakState()
+// Blake256 calculates and returns the Blake256 hash of the input data.
+func Blake256(data ...[]byte) []byte {
+	d := NewBlakeState()
 	for _, b := range data {
 		d.Write(b)
 	}
-	d.Read(b)
-	return b
+	return d.Sum(nil)
 }
 
-// Keccak256Hash calculates and returns the Keccak256 hash of the input data,
+// Blake256Hash calculates and returns the Blake256 hash of the input data,
 // converting it to an internal Hash data structure.
-func Keccak256Hash(data ...[]byte) (h common.Hash) {
-	d := NewKeccakState()
+func Blake256Hash(data ...[]byte) (h common.Hash) {
+	d := NewBlakeState()
 	for _, b := range data {
 		d.Write(b)
 	}
-	d.Read(h[:])
+	copy(h[:], d.Sum(nil))
 	return h
 }
 
-// Keccak512 calculates and returns the Keccak512 hash of the input data.
-func Keccak512(data ...[]byte) []byte {
-	d := sha3.NewLegacyKeccak512()
+// Blake512 calculates and returns the Blake512 hash of the input data.
+func Blake512(data ...[]byte) []byte {
+	d, err := blake2b.New512(nil)
+	if err != nil {
+		panic(err)
+	}
 	for _, b := range data {
 		d.Write(b)
 	}
@@ -106,13 +105,13 @@ func Keccak512(data ...[]byte) []byte {
 // CreateAddress creates an ethereum address given the bytes and the nonce
 func CreateAddress(b common.Address, nonce uint64) common.Address {
 	data, _ := rlp.EncodeToBytes([]interface{}{b, nonce})
-	return common.BytesToAddress(Keccak256(data)[12:])
+	return common.BytesToAddress(Blake256(data)[12:])
 }
 
 // CreateAddress2 creates an ethereum address given the address bytes, initial
 // contract code hash and a salt.
 func CreateAddress2(b common.Address, salt [32]byte, inithash []byte) common.Address {
-	return common.BytesToAddress(Keccak256([]byte{0xff}, b.Bytes(), salt[:], inithash)[12:])
+	return common.BytesToAddress(Blake256([]byte{0xff}, b.Bytes(), salt[:], inithash)[12:])
 }
 
 // ToECDSA creates a private key with the given D value.
@@ -274,7 +273,7 @@ func ValidateSignatureValues(v byte, r, s *big.Int, homestead bool) bool {
 
 func PubkeyToAddress(p ecdsa.PublicKey) common.Address {
 	pubBytes := FromECDSAPub(&p)
-	return common.BytesToAddress(Keccak256(pubBytes[1:])[12:])
+	return common.BytesToAddress(Blake256(pubBytes[1:])[12:])
 }
 
 func zeroBytes(bytes []byte) {

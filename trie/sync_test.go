@@ -481,7 +481,7 @@ func TestIncompleteSync(t *testing.T) {
 		batch.Write()
 
 		for _, result := range results {
-			hash := crypto.Keccak256Hash(result.Data)
+			hash := crypto.Blake256Hash(result.Data)
 			if hash != root {
 				added = append(added, hash)
 			}

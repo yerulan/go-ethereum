@@ -378,13 +378,13 @@ func newFrontierInstructionSet() JumpTable {
 			minStack:    minStack(2, 1),
 			maxStack:    maxStack(2, 1),
 		},
-		KECCAK256: {
-			execute:     opKeccak256,
-			constantGas: params.Keccak256Gas,
-			dynamicGas:  gasKeccak256,
+		BLAKE256: {
+			execute:     opBlake256,
+			constantGas: params.Blake256Gas,
+			dynamicGas:  gasBlake256,
 			minStack:    minStack(2, 1),
 			maxStack:    maxStack(2, 1),
-			memorySize:  memoryKeccak256,
+			memorySize:  memoryBlake256,
 		},
 		ADDRESS: {
 			execute:     opAddress,

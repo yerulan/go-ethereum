@@ -36,6 +36,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/state/snapshot"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/crypto/blake2b"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/light"
@@ -43,7 +44,6 @@ import (
 	"github.com/ethereum/go-ethereum/p2p/msgrate"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/trie"
-	"golang.org/x/crypto/sha3"
 )
 
 const (
@@ -153,7 +153,7 @@ type accountResponse struct {
 // actual requests and to validate any security constraints.
 //
 // Concurrency note: bytecode requests and responses are handled concurrently from
-// the main runloop to allow Keccak256 hash verifications on the peer's thread and
+// the main runloop to allow Blake256 hash verifications on the peer's thread and
 // to drop on invalid response. The request struct must contain all the data to
 // construct the response without accessing runloop internals (i.e. task). That
 // is only included to allow the runloop to match a response to the task being
@@ -231,7 +231,7 @@ type storageResponse struct {
 // are to actual requests and to validate any security constraints.
 //
 // Concurrency note: trie node requests and responses are handled concurrently from
-// the main runloop to allow Keccak256 hash verifications on the peer's thread and
+// the main runloop to allow Blake256 hash verifications on the peer's thread and
 // to drop on invalid response. The request struct must contain all the data to
 // construct the response without accessing runloop internals (i.e. task). That
 // is only included to allow the runloop to match a response to the task being
@@ -266,7 +266,7 @@ type trienodeHealResponse struct {
 // actual requests and to validate any security constraints.
 //
 // Concurrency note: bytecode requests and responses are handled concurrently from
-// the main runloop to allow Keccak256 hash verifications on the peer's thread and
+// the main runloop to allow Blake256 hash verifications on the peer's thread and
 // to drop on invalid response. The request struct must contain all the data to
 // construct the response without accessing runloop internals (i.e. task). That
 // is only included to allow the runloop to match a response to the task being
@@ -2503,7 +2503,7 @@ func (s *Syncer) onByteCodes(peer SyncPeer, id uint64, bytecodes [][]byte) error
 
 	// Cross reference the requested bytecodes with the response to find gaps
 	// that the serving node is missing
-	hasher := sha3.NewLegacyKeccak256().(crypto.KeccakState)
+	hasher := blake2b.NewBlake2b256().(crypto.BlakeState)
 	hash := make([]byte, 32)
 
 	codes := make([][]byte, len(req.hashes))
@@ -2511,7 +2511,7 @@ func (s *Syncer) onByteCodes(peer SyncPeer, id uint64, bytecodes [][]byte) error
 		// Find the next hash that we've been served, leaving misses with nils
 		hasher.Reset()
 		hasher.Write(bytecodes[i])
-		hasher.Read(hash)
+		copy(hash, hasher.Sum(nil))
 
 		for j < len(req.hashes) && !bytes.Equal(hash, req.hashes[j][:]) {
 			j++
@@ -2748,7 +2748,7 @@ func (s *Syncer) OnTrieNodes(peer SyncPeer, id uint64, trienodes [][]byte) error
 	// Cross reference the requested trienodes with the response to find gaps
 	// that the serving node is missing
 	var (
-		hasher = sha3.NewLegacyKeccak256().(crypto.KeccakState)
+		hasher = blake2b.NewBlake2b256().(crypto.BlakeState)
 		hash   = make([]byte, 32)
 		nodes  = make([][]byte, len(req.hashes))
 		fills  uint64
@@ -2757,7 +2757,7 @@ func (s *Syncer) OnTrieNodes(peer SyncPeer, id uint64, trienodes [][]byte) error
 		// Find the next hash that we've been served, leaving misses with nils
 		hasher.Reset()
 		hasher.Write(trienodes[i])
-		hasher.Read(hash)
+		copy(hash, hasher.Sum(nil))
 
 		for j < len(req.hashes) && !bytes.Equal(hash, req.hashes[j][:]) {
 			j++
@@ -2854,7 +2854,7 @@ func (s *Syncer) onHealByteCodes(peer SyncPeer, id uint64, bytecodes [][]byte) e
 
 	// Cross reference the requested bytecodes with the response to find gaps
 	// that the serving node is missing
-	hasher := sha3.NewLegacyKeccak256().(crypto.KeccakState)
+	hasher := blake2b.NewBlake2b256().(crypto.BlakeState)
 	hash := make([]byte, 32)
 
 	codes := make([][]byte, len(req.hashes))
@@ -2862,7 +2862,7 @@ func (s *Syncer) onHealByteCodes(peer SyncPeer, id uint64, bytecodes [][]byte) e
 		// Find the next hash that we've been served, leaving misses with nils
 		hasher.Reset()
 		hasher.Write(bytecodes[i])
-		hasher.Read(hash)
+		copy(hash, hasher.Sum(nil))
 
 		for j < len(req.hashes) && !bytes.Equal(hash, req.hashes[j][:]) {
 			j++

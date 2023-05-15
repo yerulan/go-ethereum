@@ -29,7 +29,7 @@ import (
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"golang.org/x/crypto/sha3"
+	"github.com/ethereum/go-ethereum/crypto/blake2b"
 )
 
 // Lengths of hashes and addresses in bytes.
@@ -45,7 +45,7 @@ var (
 	addressT = reflect.TypeOf(Address{})
 )
 
-// Hash represents the 32 byte Keccak256 hash of arbitrary data.
+// Hash represents the 32 byte blake256 hash of arbitrary data.
 type Hash [HashLength]byte
 
 // BytesToHash sets b to hash.
@@ -248,7 +248,7 @@ func (a *Address) checksumHex() []byte {
 	buf := a.hex()
 
 	// compute checksum
-	sha := sha3.NewLegacyKeccak256()
+	sha := blake2b.NewBlake2b256()
 	sha.Write(buf[2:])
 	hash := sha.Sum(nil)
 	for i := 2; i < len(buf); i++ {

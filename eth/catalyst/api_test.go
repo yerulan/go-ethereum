@@ -263,7 +263,7 @@ func TestInvalidPayloadTimestamp(t *testing.T) {
 		t.Run(fmt.Sprintf("Timestamp test: %v", i), func(t *testing.T) {
 			params := engine.PayloadAttributes{
 				Timestamp:             test.time,
-				Random:                crypto.Keccak256Hash([]byte{byte(123)}),
+				Random:                crypto.Blake256Hash([]byte{byte(123)}),
 				SuggestedFeeRecipient: parent.Coinbase,
 			}
 			fcState := engine.ForkchoiceStateV1{
@@ -602,7 +602,7 @@ func TestNewPayloadOnInvalidChain(t *testing.T) {
 		var (
 			params = engine.PayloadAttributes{
 				Timestamp:             parent.Time + 1,
-				Random:                crypto.Keccak256Hash([]byte{byte(i)}),
+				Random:                crypto.Blake256Hash([]byte{byte(i)}),
 				SuggestedFeeRecipient: parent.Coinbase,
 			}
 			fcState = engine.ForkchoiceStateV1{
@@ -735,7 +735,7 @@ func TestEmptyBlocks(t *testing.T) {
 func getNewPayload(t *testing.T, api *ConsensusAPI, parent *types.Header, withdrawals []*types.Withdrawal) *engine.ExecutableData {
 	params := engine.PayloadAttributes{
 		Timestamp:             parent.Time + 1,
-		Random:                crypto.Keccak256Hash([]byte{byte(1)}),
+		Random:                crypto.Blake256Hash([]byte{byte(1)}),
 		SuggestedFeeRecipient: parent.Coinbase,
 		Withdrawals:           withdrawals,
 	}
@@ -900,7 +900,7 @@ func TestNewPayloadOnInvalidTerminalBlock(t *testing.T) {
 	args := &miner.BuildPayloadArgs{
 		Parent:       parent.Hash(),
 		Timestamp:    parent.Time() + 1,
-		Random:       crypto.Keccak256Hash([]byte{byte(1)}),
+		Random:       crypto.Blake256Hash([]byte{byte(1)}),
 		FeeRecipient: parent.Coinbase(),
 	}
 	payload, err := api.eth.Miner().BuildPayload(args)

@@ -25,9 +25,9 @@ import (
 	"github.com/ethereum/go-ethereum/consensus/ethash"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/crypto/blake2b"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
-	"golang.org/x/crypto/sha3"
 )
 
 func getBlock(transactions int, uncles int, dataSize int) *types.Block {
@@ -108,7 +108,7 @@ func testRlpIterator(t *testing.T, txs, uncles, datasize int) {
 	var gotHashes []common.Hash
 	var expHashes []common.Hash
 	for txIt.Next() {
-		gotHashes = append(gotHashes, crypto.Keccak256Hash(txIt.Value()))
+		gotHashes = append(gotHashes, crypto.Blake256Hash(txIt.Value()))
 	}
 
 	var expBody types.Body
@@ -147,7 +147,7 @@ func BenchmarkHashing(b *testing.B) {
 		blockRlp, _ = rlp.EncodeToBytes(block)
 	}
 	var got common.Hash
-	var hasher = sha3.NewLegacyKeccak256()
+	var hasher = blake2b.NewBlake2b256()
 	b.Run("iteratorhashing", func(b *testing.B) {
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {

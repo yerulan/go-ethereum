@@ -28,9 +28,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/crypto/blake2b"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/trie"
-	"golang.org/x/crypto/sha3"
 )
 
 type fuzzer struct {
@@ -146,10 +146,10 @@ func Debug(data []byte) int {
 func (f *fuzzer) fuzz() int {
 	// This spongeDb is used to check the sequence of disk-db-writes
 	var (
-		spongeA = &spongeDb{sponge: sha3.NewLegacyKeccak256()}
+		spongeA = &spongeDb{sponge: blake2b.NewBlake2b256()}
 		dbA     = trie.NewDatabase(rawdb.NewDatabase(spongeA))
 		trieA   = trie.NewEmpty(dbA)
-		spongeB = &spongeDb{sponge: sha3.NewLegacyKeccak256()}
+		spongeB = &spongeDb{sponge: blake2b.NewBlake2b256()}
 		dbB     = trie.NewDatabase(rawdb.NewDatabase(spongeB))
 		trieB   = trie.NewStackTrie(func(owner common.Hash, path []byte, hash common.Hash, blob []byte) {
 			rawdb.WriteTrieNode(spongeB, owner, path, hash, blob, dbB.Scheme())
@@ -212,7 +212,7 @@ func (f *fuzzer) fuzz() int {
 	var (
 		nodeset = make(map[string][]byte) // path -> blob
 		trieC   = trie.NewStackTrie(func(owner common.Hash, path []byte, hash common.Hash, blob []byte) {
-			if crypto.Keccak256Hash(blob) != hash {
+			if crypto.Blake256Hash(blob) != hash {
 				panic("invalid node blob")
 			}
 			if owner != (common.Hash{}) {

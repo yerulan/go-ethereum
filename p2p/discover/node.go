@@ -61,7 +61,7 @@ func decodePubkey(curve elliptic.Curve, e []byte) (*ecdsa.PublicKey, error) {
 }
 
 func (e encPubkey) id() enode.ID {
-	return enode.ID(crypto.Keccak256Hash(e[:]))
+	return enode.ID(crypto.Blake256Hash(e[:]))
 }
 
 func wrapNode(n *enode.Node) *node {

@@ -620,7 +620,7 @@ func TestOpTstore(t *testing.T) {
 	}
 }
 
-func BenchmarkOpKeccak256(bench *testing.B) {
+func BenchmarkOpBlake256(bench *testing.B) {
 	var (
 		env            = NewEVM(BlockContext{}, TxContext{}, nil, params.TestChainConfig, Config{})
 		stack          = newstack()
@@ -636,7 +636,7 @@ func BenchmarkOpKeccak256(bench *testing.B) {
 	for i := 0; i < bench.N; i++ {
 		stack.push(uint256.NewInt(32))
 		stack.push(start)
-		opKeccak256(&pc, evmInterpreter, &ScopeContext{mem, stack, nil})
+		opBlake256(&pc, evmInterpreter, &ScopeContext{mem, stack, nil})
 	}
 }
 
@@ -695,7 +695,7 @@ func TestCreate2Addreses(t *testing.T) {
 		origin := common.BytesToAddress(common.FromHex(tt.origin))
 		salt := common.BytesToHash(common.FromHex(tt.salt))
 		code := common.FromHex(tt.code)
-		codeHash := crypto.Keccak256(code)
+		codeHash := crypto.Blake256(code)
 		address := crypto.CreateAddress2(origin, salt, codeHash)
 		/*
 			stack          := newstack()
@@ -723,7 +723,7 @@ func TestRandom(t *testing.T) {
 		{name: "empty hash", random: common.Hash{}},
 		{name: "1", random: common.Hash{0}},
 		{name: "emptyCodeHash", random: emptyCodeHash},
-		{name: "hash(0x010203)", random: crypto.Keccak256Hash([]byte{0x01, 0x02, 0x03})},
+		{name: "hash(0x010203)", random: crypto.Blake256Hash([]byte{0x01, 0x02, 0x03})},
 	} {
 		var (
 			env            = NewEVM(BlockContext{Random: &tt.random}, TxContext{}, nil, params.TestChainConfig, Config{})

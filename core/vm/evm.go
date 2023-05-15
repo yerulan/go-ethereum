@@ -28,7 +28,7 @@ import (
 
 // emptyCodeHash is used by create to ensure deployment is disallowed to already
 // deployed contract addresses (relevant after the account abstraction).
-var emptyCodeHash = crypto.Keccak256Hash(nil)
+var emptyCodeHash = crypto.Blake256Hash(nil)
 
 type (
 	// CanTransferFunc is the signature of a transfer guard function
@@ -408,7 +408,7 @@ type codeAndHash struct {
 
 func (c *codeAndHash) Hash() common.Hash {
 	if c.hash == (common.Hash{}) {
-		c.hash = crypto.Keccak256Hash(c.code)
+		c.hash = crypto.Blake256Hash(c.code)
 	}
 	return c.hash
 }
@@ -512,7 +512,7 @@ func (evm *EVM) Create(caller ContractRef, code []byte, gas uint64, value *big.I
 
 // Create2 creates a new contract using code as deployment code.
 //
-// The different between Create2 with Create is Create2 uses keccak256(0xff ++ msg.sender ++ salt ++ keccak256(init_code))[12:]
+// The different between Create2 with Create is Create2 uses blake256(0xff ++ msg.sender ++ salt ++ blake256(init_code))[12:]
 // instead of the usual sender-and-nonce-hash as the address where the contract is initialized at.
 func (evm *EVM) Create2(caller ContractRef, code []byte, gas uint64, endowment *big.Int, salt *uint256.Int) (ret []byte, contractAddr common.Address, leftOverGas uint64, err error) {
 	codeAndHash := &codeAndHash{code: code}

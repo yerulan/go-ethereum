@@ -23,9 +23,9 @@ import (
 
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/crypto/blake2b"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/ethereum/go-ethereum/rlp"
-	"golang.org/x/crypto/sha3"
 )
 
 // ValidSchemes is a List of known secure identity schemes.
@@ -49,7 +49,7 @@ func SignV4(r *enr.Record, privkey *ecdsa.PrivateKey) error {
 	cpy.Set(enr.ID("v4"))
 	cpy.Set(Secp256k1(privkey.PublicKey))
 
-	h := sha3.NewLegacyKeccak256()
+	h := blake2b.NewBlake2b256()
 	rlp.Encode(h, cpy.AppendElements(nil))
 	sig, err := crypto.Sign(h.Sum(nil), privkey)
 	if err != nil {
@@ -70,7 +70,7 @@ func (V4ID) Verify(r *enr.Record, sig []byte) error {
 		return fmt.Errorf("invalid public key")
 	}
 
-	h := sha3.NewLegacyKeccak256()
+	h := blake2b.NewBlake2b256()
 	rlp.Encode(h, r.AppendElements(nil))
 	if !crypto.VerifySignature(entry, h.Sum(nil), sig) {
 		return enr.ErrInvalidSig
@@ -87,7 +87,7 @@ func (V4ID) NodeAddr(r *enr.Record) []byte {
 	buf := make([]byte, 64)
 	math.ReadBits(pubkey.X, buf[:32])
 	math.ReadBits(pubkey.Y, buf[32:])
-	return crypto.Keccak256(buf)
+	return crypto.Blake256(buf)
 }
 
 // Secp256k1 is the "secp256k1" key, which holds a public key.

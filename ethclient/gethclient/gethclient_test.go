@@ -42,7 +42,7 @@ var (
 	testKey, _  = crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
 	testAddr    = crypto.PubkeyToAddress(testKey.PublicKey)
 	testSlot    = common.HexToHash("0xdeadbeef")
-	testValue   = crypto.Keccak256Hash(testSlot[:])
+	testValue   = crypto.Blake256Hash(testSlot[:])
 	testBalance = big.NewInt(2e15)
 )
 

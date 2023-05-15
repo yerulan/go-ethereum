@@ -131,7 +131,7 @@ type Pubkey [64]byte
 
 // ID returns the node ID corresponding to the public key.
 func (e Pubkey) ID() enode.ID {
-	return enode.ID(crypto.Keccak256Hash(e[:]))
+	return enode.ID(crypto.Blake256Hash(e[:]))
 }
 
 // Node represents information about a node.
@@ -212,11 +212,11 @@ func Decode(input []byte) (Packet, Pubkey, []byte, error) {
 		return nil, Pubkey{}, nil, ErrPacketTooSmall
 	}
 	hash, sig, sigdata := input[:macSize], input[macSize:headSize], input[headSize:]
-	shouldhash := crypto.Keccak256(input[macSize:])
+	shouldhash := crypto.Blake256(input[macSize:])
 	if !bytes.Equal(hash, shouldhash) {
 		return nil, Pubkey{}, nil, ErrBadHash
 	}
-	fromKey, err := recoverNodeKey(crypto.Keccak256(input[headSize:]), sig)
+	fromKey, err := recoverNodeKey(crypto.Blake256(input[headSize:]), sig)
 	if err != nil {
 		return nil, fromKey, hash, err
 	}
@@ -252,13 +252,13 @@ func Encode(priv *ecdsa.PrivateKey, req Packet) (packet, hash []byte, err error)
 		return nil, nil, err
 	}
 	packet = b.Bytes()
-	sig, err := crypto.Sign(crypto.Keccak256(packet[headSize:]), priv)
+	sig, err := crypto.Sign(crypto.Blake256(packet[headSize:]), priv)
 	if err != nil {
 		return nil, nil, err
 	}
 	copy(packet[macSize:], sig)
 	// Add the hash to the front. Note: this doesn't protect the packet in any way.
-	hash = crypto.Keccak256(packet[macSize:])
+	hash = crypto.Blake256(packet[macSize:])
 	copy(packet, hash)
 	return packet, hash, nil
 }

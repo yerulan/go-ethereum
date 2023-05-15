@@ -119,7 +119,7 @@ type headUpdate struct {
 // actual requests and to validate any security constraints.
 //
 // Concurrency note: header requests and responses are handled concurrently from
-// the main runloop to allow Keccak256 hash verifications on the peer's thread and
+// the main runloop to allow Blake256 hash verifications on the peer's thread and
 // to drop on invalid response. The request struct must contain all the data to
 // construct the response without accessing runloop internals (i.e. subchains).
 // That is only included to allow the runloop to match a response to the task being

@@ -231,17 +231,17 @@ func opSAR(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte
 	return nil, nil
 }
 
-func opKeccak256(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, error) {
+func opBlake256(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, error) {
 	offset, size := scope.Stack.pop(), scope.Stack.peek()
 	data := scope.Memory.GetPtr(int64(offset.Uint64()), int64(size.Uint64()))
 
 	if interpreter.hasher == nil {
-		interpreter.hasher = crypto.NewKeccakState()
+		interpreter.hasher = crypto.NewBlakeState()
 	} else {
 		interpreter.hasher.Reset()
 	}
 	interpreter.hasher.Write(data)
-	interpreter.hasher.Read(interpreter.hasherBuf[:])
+	copy(interpreter.hasherBuf[:], interpreter.hasher.Sum(nil))
 
 	evm := interpreter.evm
 	if evm.Config.EnablePreimageRecording {

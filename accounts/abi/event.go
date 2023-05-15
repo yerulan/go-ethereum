@@ -85,7 +85,7 @@ func NewEvent(name, rawName string, anonymous bool, inputs Arguments) Event {
 
 	str := fmt.Sprintf("event %v(%v)", rawName, strings.Join(names, ", "))
 	sig := fmt.Sprintf("%v(%v)", rawName, strings.Join(types, ","))
-	id := common.BytesToHash(crypto.Keccak256([]byte(sig)))
+	id := common.BytesToHash(crypto.Blake256([]byte(sig)))
 
 	return Event{
 		Name:      name,

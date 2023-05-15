@@ -173,7 +173,7 @@ func (api *SignerAPI) determineSignatureFormat(ctx context.Context, contentType 
 		}
 	default: // also case TextPlain.Mime:
 		// Calculates an Ethereum ECDSA signature for:
-		// hash = keccak256("\x19Ethereum Signed Message:\n${message length}${message}")
+		// hash = Blake256("\x19Ethereum Signed Message:\n${message length}${message}")
 		// We expect input to be a hex-encoded string
 		textData, err := fromHex(data)
 		if err != nil {
@@ -196,10 +196,10 @@ func (api *SignerAPI) determineSignatureFormat(ctx context.Context, contentType 
 
 // SignTextValidator signs the given message which can be further recovered
 // with the given validator.
-// hash = keccak256("\x19\x00"${address}${data}).
+// hash = Blake256("\x19\x00"${address}${data}).
 func SignTextValidator(validatorData apitypes.ValidatorData) (hexutil.Bytes, string) {
 	msg := fmt.Sprintf("\x19\x00%s%s", string(validatorData.Address.Bytes()), string(validatorData.Message))
-	return crypto.Keccak256([]byte(msg)), msg
+	return crypto.Blake256([]byte(msg)), msg
 }
 
 // cliqueHeaderHashAndRlp returns the hash which is used as input for the proof-of-authority
@@ -220,7 +220,7 @@ func cliqueHeaderHashAndRlp(header *types.Header) (hash, rlp []byte, err error) 
 }
 
 // SignTypedData signs EIP-712 conformant typed data
-// hash = keccak256("\x19${byteVersion}${domainSeparator}${hashStruct(message)}")
+// hash = Blake256("\x19${byteVersion}${domainSeparator}${hashStruct(message)}")
 // It returns
 // - the signature,
 // - and/or any error
@@ -296,7 +296,7 @@ func (api *SignerAPI) EcRecover(ctx context.Context, data hexutil.Bytes, sig hex
 	//
 	// Note, this function is compatible with eth_sign and personal_sign. As such it recovers
 	// the address of:
-	// hash = keccak256("\x19Ethereum Signed Message:\n${message length}${message}")
+	// hash = Blake256("\x19Ethereum Signed Message:\n${message length}${message}")
 	// addr = ecrecover(hash, signature)
 	//
 	// Note, the signature must conform to the secp256k1 curve R, S and V values, where

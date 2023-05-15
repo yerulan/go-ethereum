@@ -33,9 +33,9 @@ import (
 	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/crypto/blake2b"
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/rlp"
-	"golang.org/x/crypto/sha3"
 )
 
 func init() {
@@ -637,11 +637,11 @@ func BenchmarkHash(b *testing.B) {
 	trie := NewEmpty(NewDatabase(rawdb.NewMemoryDatabase()))
 	i := 0
 	for ; i < len(addresses)/2; i++ {
-		trie.MustUpdate(crypto.Keccak256(addresses[i][:]), accounts[i])
+		trie.MustUpdate(crypto.Blake256(addresses[i][:]), accounts[i])
 	}
 	trie.Hash()
 	for ; i < len(addresses); i++ {
-		trie.MustUpdate(crypto.Keccak256(addresses[i][:]), accounts[i])
+		trie.MustUpdate(crypto.Blake256(addresses[i][:]), accounts[i])
 	}
 	b.ResetTimer()
 	b.ReportAllocs()
@@ -667,7 +667,7 @@ func benchmarkCommitAfterHash(b *testing.B, collectLeaf bool) {
 	addresses, accounts := makeAccounts(b.N)
 	trie := NewEmpty(NewDatabase(rawdb.NewMemoryDatabase()))
 	for i := 0; i < len(addresses); i++ {
-		trie.MustUpdate(crypto.Keccak256(addresses[i][:]), accounts[i])
+		trie.MustUpdate(crypto.Blake256(addresses[i][:]), accounts[i])
 	}
 	// Insert the accounts into the trie and hash it
 	trie.Hash()
@@ -707,7 +707,7 @@ func TestCommitAfterHash(t *testing.T) {
 	addresses, accounts := makeAccounts(1000)
 	trie := NewEmpty(NewDatabase(rawdb.NewMemoryDatabase()))
 	for i := 0; i < len(addresses); i++ {
-		trie.MustUpdate(crypto.Keccak256(addresses[i][:]), accounts[i])
+		trie.MustUpdate(crypto.Blake256(addresses[i][:]), accounts[i])
 	}
 	// Insert the accounts into the trie and hash it
 	trie.Hash()
@@ -738,7 +738,7 @@ func makeAccounts(size int) (addresses [][20]byte, accounts [][]byte) {
 		var (
 			nonce = uint64(random.Int63())
 			root  = types.EmptyRootHash
-			code  = crypto.Keccak256(nil)
+			code  = crypto.Blake256(nil)
 		)
 		// The big.Rand function is not deterministic with regards to 64 vs 32 bit systems,
 		// and will consume different amount of data from the rand source.
@@ -812,12 +812,12 @@ func TestCommitSequence(t *testing.T) {
 	} {
 		addresses, accounts := makeAccounts(tc.count)
 		// This spongeDb is used to check the sequence of disk-db-writes
-		s := &spongeDb{sponge: sha3.NewLegacyKeccak256()}
+		s := &spongeDb{sponge: blake2b.NewBlake2b256()}
 		db := NewDatabase(rawdb.NewDatabase(s))
 		trie := NewEmpty(db)
 		// Fill the trie with elements
 		for i := 0; i < tc.count; i++ {
-			trie.MustUpdate(crypto.Keccak256(addresses[i][:]), accounts[i])
+			trie.MustUpdate(crypto.Blake256(addresses[i][:]), accounts[i])
 		}
 		// Flush trie -> database
 		root, nodes := trie.Commit(false)
@@ -843,7 +843,7 @@ func TestCommitSequenceRandomBlobs(t *testing.T) {
 	} {
 		prng := rand.New(rand.NewSource(int64(i)))
 		// This spongeDb is used to check the sequence of disk-db-writes
-		s := &spongeDb{sponge: sha3.NewLegacyKeccak256()}
+		s := &spongeDb{sponge: blake2b.NewBlake2b256()}
 		db := NewDatabase(rawdb.NewDatabase(s))
 		trie := NewEmpty(db)
 		// Fill the trie with elements
@@ -875,11 +875,11 @@ func TestCommitSequenceStackTrie(t *testing.T) {
 	for count := 1; count < 200; count++ {
 		prng := rand.New(rand.NewSource(int64(count)))
 		// This spongeDb is used to check the sequence of disk-db-writes
-		s := &spongeDb{sponge: sha3.NewLegacyKeccak256(), id: "a"}
+		s := &spongeDb{sponge: blake2b.NewBlake2b256(), id: "a"}
 		db := NewDatabase(rawdb.NewDatabase(s))
 		trie := NewEmpty(db)
 		// Another sponge is used for the stacktrie commits
-		stackTrieSponge := &spongeDb{sponge: sha3.NewLegacyKeccak256(), id: "b"}
+		stackTrieSponge := &spongeDb{sponge: blake2b.NewBlake2b256(), id: "b"}
 		stTrie := NewStackTrie(func(owner common.Hash, path []byte, hash common.Hash, blob []byte) {
 			rawdb.WriteTrieNode(stackTrieSponge, owner, path, hash, blob, db.Scheme())
 		})
@@ -934,11 +934,11 @@ func TestCommitSequenceStackTrie(t *testing.T) {
 // that even a small trie which contains a leaf will have an extension making it
 // not fit into 32 bytes, rlp-encoded. However, it's still the correct thing to do.
 func TestCommitSequenceSmallRoot(t *testing.T) {
-	s := &spongeDb{sponge: sha3.NewLegacyKeccak256(), id: "a"}
+	s := &spongeDb{sponge: blake2b.NewBlake2b256(), id: "a"}
 	db := NewDatabase(rawdb.NewDatabase(s))
 	trie := NewEmpty(db)
 	// Another sponge is used for the stacktrie commits
-	stackTrieSponge := &spongeDb{sponge: sha3.NewLegacyKeccak256(), id: "b"}
+	stackTrieSponge := &spongeDb{sponge: blake2b.NewBlake2b256(), id: "b"}
 	stTrie := NewStackTrie(func(owner common.Hash, path []byte, hash common.Hash, blob []byte) {
 		rawdb.WriteTrieNode(stackTrieSponge, owner, path, hash, blob, db.Scheme())
 	})
@@ -1014,7 +1014,7 @@ func benchmarkHashFixedSize(b *testing.B, addresses [][20]byte, accounts [][]byt
 	b.ReportAllocs()
 	trie := NewEmpty(NewDatabase(rawdb.NewMemoryDatabase()))
 	for i := 0; i < len(addresses); i++ {
-		trie.MustUpdate(crypto.Keccak256(addresses[i][:]), accounts[i])
+		trie.MustUpdate(crypto.Blake256(addresses[i][:]), accounts[i])
 	}
 	// Insert the accounts into the trie and hash it
 	b.StartTimer()
@@ -1065,7 +1065,7 @@ func benchmarkCommitAfterHashFixedSize(b *testing.B, addresses [][20]byte, accou
 	b.ReportAllocs()
 	trie := NewEmpty(NewDatabase(rawdb.NewMemoryDatabase()))
 	for i := 0; i < len(addresses); i++ {
-		trie.MustUpdate(crypto.Keccak256(addresses[i][:]), accounts[i])
+		trie.MustUpdate(crypto.Blake256(addresses[i][:]), accounts[i])
 	}
 	// Insert the accounts into the trie and hash it
 	trie.Hash()
@@ -1118,7 +1118,7 @@ func benchmarkDerefRootFixedSize(b *testing.B, addresses [][20]byte, accounts []
 	triedb := NewDatabase(rawdb.NewMemoryDatabase())
 	trie := NewEmpty(triedb)
 	for i := 0; i < len(addresses); i++ {
-		trie.MustUpdate(crypto.Keccak256(addresses[i][:]), accounts[i])
+		trie.MustUpdate(crypto.Blake256(addresses[i][:]), accounts[i])
 	}
 	h := trie.Hash()
 	_, nodes := trie.Commit(false)

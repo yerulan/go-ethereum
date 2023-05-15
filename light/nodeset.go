@@ -130,7 +130,7 @@ type NodeList []rlp.RawValue
 // Store writes the contents of the list to the given database
 func (n NodeList) Store(db ethdb.KeyValueWriter) {
 	for _, node := range n {
-		db.Put(crypto.Keccak256(node), node)
+		db.Put(crypto.Blake256(node), node)
 	}
 }
 

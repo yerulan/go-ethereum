@@ -322,7 +322,7 @@ func TestStacktrieNotModifyValues(t *testing.T) {
 	var vals [][]byte
 	getValue := func(i int) []byte {
 		if i%2 == 0 { // large
-			return crypto.Keccak256(big.NewInt(int64(i)).Bytes())
+			return crypto.Blake256(big.NewInt(int64(i)).Bytes())
 		} else { //small
 			return big.NewInt(int64(i)).Bytes()
 		}
@@ -359,7 +359,7 @@ func TestStacktrieSerialization(t *testing.T) {
 	)
 	getValue := func(i int) []byte {
 		if i%2 == 0 { // large
-			return crypto.Keccak256(big.NewInt(int64(i)).Bytes())
+			return crypto.Blake256(big.NewInt(int64(i)).Bytes())
 		} else { //small
 			return big.NewInt(int64(i)).Bytes()
 		}

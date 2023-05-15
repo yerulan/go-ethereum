@@ -538,8 +538,8 @@ func makeLargeTestTrie() (*Database, *StateTrie, *loggingDb) {
 		val := make([]byte, 32)
 		binary.BigEndian.PutUint64(key, uint64(i))
 		binary.BigEndian.PutUint64(val, uint64(i))
-		key = crypto.Keccak256(key)
-		val = crypto.Keccak256(val)
+		key = crypto.Blake256(key)
+		val = crypto.Blake256(val)
 		trie.MustUpdate(key, val)
 	}
 	_, nodes := trie.Commit(false)

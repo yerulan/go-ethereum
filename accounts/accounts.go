@@ -24,8 +24,8 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto/blake2b"
 	"github.com/ethereum/go-ethereum/event"
-	"golang.org/x/crypto/sha3"
 )
 
 // Account represents an Ethereum account located at a specific location defined
@@ -178,7 +178,7 @@ type Backend interface {
 //
 // The hash is calculated as
 //
-//	keccak256("\x19Ethereum Signed Message:\n"${message length}${message}).
+//	blake2b("\x19Ethereum Signed Message:\n"${message length}${message}).
 //
 // This gives context to the signed message and prevents signing of transactions.
 func TextHash(data []byte) []byte {
@@ -191,12 +191,12 @@ func TextHash(data []byte) []byte {
 //
 // The hash is calculated as
 //
-//	keccak256("\x19Ethereum Signed Message:\n"${message length}${message}).
+//	blake2b("\x19Ethereum Signed Message:\n"${message length}${message}).
 //
 // This gives context to the signed message and prevents signing of transactions.
 func TextAndHash(data []byte) ([]byte, string) {
 	msg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), string(data))
-	hasher := sha3.NewLegacyKeccak256()
+	hasher := blake2b.NewBlake2b256()
 	hasher.Write([]byte(msg))
 	return hasher.Sum(nil), msg
 }

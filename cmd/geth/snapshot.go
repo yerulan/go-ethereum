@@ -382,7 +382,7 @@ func traverseRawState(ctx *cli.Context) error {
 		codes      int
 		lastReport time.Time
 		start      = time.Now()
-		hasher     = crypto.NewKeccakState()
+		hasher     = crypto.NewBlakeState()
 		got        = make([]byte, 32)
 	)
 	accIter := t.NodeIterator(nil)
@@ -400,7 +400,7 @@ func traverseRawState(ctx *cli.Context) error {
 			}
 			hasher.Reset()
 			hasher.Write(blob)
-			hasher.Read(got)
+			copy(got, hasher.Sum(nil))
 			if !bytes.Equal(got, node.Bytes()) {
 				log.Error("Invalid trie node(account)", "hash", node.Hex(), "value", blob)
 				return errors.New("invalid account node")
@@ -437,7 +437,7 @@ func traverseRawState(ctx *cli.Context) error {
 						}
 						hasher.Reset()
 						hasher.Write(blob)
-						hasher.Read(got)
+						copy(got, hasher.Sum(nil))
 						if !bytes.Equal(got, node.Bytes()) {
 							log.Error("Invalid trie node(storage)", "hash", node.Hex(), "value", blob)
 							return errors.New("invalid storage node")
@@ -571,7 +571,7 @@ func checkAccount(ctx *cli.Context) error {
 	switch arg := ctx.Args().First(); len(arg) {
 	case 40, 42:
 		addr = common.HexToAddress(arg)
-		hash = crypto.Keccak256Hash(addr.Bytes())
+		hash = crypto.Blake256Hash(addr.Bytes())
 	case 64, 66:
 		hash = common.HexToHash(arg)
 	default:

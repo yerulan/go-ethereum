@@ -27,7 +27,7 @@ import (
 type Config struct {
 	Tracer                  EVMLogger // Opcode logger
 	NoBaseFee               bool      // Forces the EIP-1559 baseFee to 0 (needed for 0 price calls)
-	EnablePreimageRecording bool      // Enables recording of SHA3/keccak preimages
+	EnablePreimageRecording bool      // Enables recording of blake2b/blake preimages
 	ExtraEips               []int     // Additional EIPS that are to be enabled
 }
 
@@ -44,8 +44,8 @@ type EVMInterpreter struct {
 	evm   *EVM
 	table *JumpTable
 
-	hasher    crypto.KeccakState // Keccak256 hasher instance shared across opcodes
-	hasherBuf common.Hash        // Keccak256 hasher result array shared aross opcodes
+	hasher    crypto.BlakeState // Blake256 hasher instance shared across opcodes
+	hasherBuf common.Hash       // Blake256 hasher result array shared aross opcodes
 
 	readOnly   bool   // Whether to throw on stateful modifications
 	returnData []byte // Last CALL's return data for subsequent reuse

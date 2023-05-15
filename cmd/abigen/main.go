@@ -196,10 +196,10 @@ func abigen(c *cli.Context) error {
 			types = append(types, typeName)
 
 			// Derive the library placeholder which is a 34 character prefix of the
-			// hex encoding of the keccak256 hash of the fully qualified library name.
+			// hex encoding of the blake256 hash of the fully qualified library name.
 			// Note that the fully qualified library name is the path of its source
 			// file and the library name separated by ":".
-			libPattern := crypto.Keccak256Hash([]byte(name)).String()[2:36] // the first 2 chars are 0x
+			libPattern := crypto.Blake256Hash([]byte(name)).String()[2:36] // the first 2 chars are 0x
 			libs[libPattern] = typeName
 		}
 	}

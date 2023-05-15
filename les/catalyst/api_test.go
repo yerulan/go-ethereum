@@ -113,11 +113,11 @@ func TestExecutePayloadV1(t *testing.T) {
 
 	fakeBlock := types.NewBlock(&types.Header{
 		ParentHash:  block.ParentHash(),
-		UncleHash:   crypto.Keccak256Hash(nil),
+		UncleHash:   crypto.Blake256Hash(nil),
 		Coinbase:    block.Coinbase(),
 		Root:        block.Root(),
-		TxHash:      crypto.Keccak256Hash(nil),
-		ReceiptHash: crypto.Keccak256Hash(nil),
+		TxHash:      crypto.Blake256Hash(nil),
+		ReceiptHash: crypto.Blake256Hash(nil),
 		Bloom:       block.Bloom(),
 		Difficulty:  big.NewInt(0),
 		Number:      block.Number(),

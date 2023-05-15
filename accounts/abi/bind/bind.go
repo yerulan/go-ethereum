@@ -361,7 +361,7 @@ func bindTopicTypeGo(kind abi.Type, structs map[string]*tmplStruct) string {
 
 	// todo(rjl493456442) according solidity documentation, indexed event
 	// parameters that are not value types i.e. arrays and structs are not
-	// stored directly but instead a keccak256-hash of an encoding is stored.
+	// stored directly but instead a blake256-hash of an encoding is stored.
 	//
 	// We only convert stringS and bytes to hash, still need to deal with
 	// array(both fixed-size and dynamic-size) and struct.
